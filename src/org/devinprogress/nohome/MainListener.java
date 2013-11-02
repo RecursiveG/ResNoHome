@@ -61,38 +61,29 @@ public class MainListener implements Listener{
 		}	
 	}
 	
-	private boolean homeAvailable(Player p,String h){
-		
-		try {
-			String t[]=h.split(":", 2);
-			if (t[0].length()==h.length()){
-				User u=((Essentials) Bukkit.getServer().getPluginManager().getPlugin("Essentials")).getUser(p);
-				Location l=null,bed=u.getBedSpawnLocation();
-				if (h.equalsIgnoreCase("bed")||(bed!=null&&h.isEmpty())||(bed!=null&&u.getHomes().size()==0)){
-					l=bed;
-				}else if(u.getHomes().size()==0)
-					return true;
-				else if(u.getHomes().size()==1)
-					l=u.getHome();
-				else
-					l=u.getHome(h);
-				return haveHomePremit(p.getName(),l);
-			}
-			if (t.length==0)return true;
-			else{
-				h=(t[1].equals(""))?"home":t[1];
-				User u=((Essentials) Bukkit.getServer().getPluginManager().getPlugin("Essentials")).getUser(t[0]);
-				if (u==null)return true;
-				Location l=u.getHome(h);
-				if (h.equalsIgnoreCase("bed"))l=u.getBedSpawnLocation();
-				if (u.getHomes().size()==0)l=u.getBedSpawnLocation();
-				if (l==null)return true;
-				return haveHomePremit(p.getName(),l);
-			}
-		} catch (Exception e) {
+	private Location getRealHome(String p,String h){
+		try{
+			User u=((Essentials) Bukkit.getServer().getPluginManager().getPlugin("Essentials")).getUser(p);
+			if (h.equalsIgnoreCase("bed"))return(u.getBedSpawnLocation());
+			Location l=u.getHome(h);
+			if(l==null&&u.getHomes().size()==0)l=u.getBedSpawnLocation();
+			if(l==null&&u.getHomes().size()==1)l=u.getHome();
+			return l;
+		}catch(Exception e){
 			e.printStackTrace();
-			return false;
+			return null;
 		}
+		
+	}
+	
+	private boolean homeAvailable(Player p,String h){
+			String t[]=h.split(":", 2);
+			if (t[0].length()==h.length())
+				return haveHomePremit(p.getName(),getRealHome(p.getName(),h));
+			else if (t.length==2)
+				return haveHomePremit(p.getName(),getRealHome(t[0],t[1]));
+			else
+				return true;
 	}
 	
 	private boolean haveHomePremit(String p,Location l){
